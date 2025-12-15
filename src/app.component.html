@@ -1,0 +1,129 @@
+<div class="min-h-screen bg-slate-100 flex items-center justify-center p-4 sm:p-6 font-sans">
+  <main class="w-full max-w-5xl bg-white rounded-2xl shadow-2xl shadow-slate-300/60 overflow-hidden">
+    <div class="p-6 sm:p-8 border-b border-slate-200">
+      <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">Ứng dụng Số hóa & Bóc tách dữ liệu hồ sơ</h1>
+      <p class="mt-2 text-slate-600">Tải lên ảnh hồ sơ (CCCD, Hộ khẩu...) để tự động nhận diện và trích xuất thông tin.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+      <!-- Left Column: Upload & Preview -->
+      <div class="p-6 sm:p-8 border-b lg:border-b-0 lg:border-r border-slate-200">
+        <h2 class="text-xl font-semibold text-slate-700 mb-4">1. Tải lên ảnh hồ sơ</h2>
+
+        <div class="bg-slate-50 border-2 border-dashed border-slate-300 rounded-lg p-6 text-center">
+          <svg class="mx-auto h-12 w-12 text-slate-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+          <label for="file-upload" class="relative cursor-pointer mt-4 inline-block bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500 px-3 py-1.5 border border-slate-300 hover:border-blue-400 transition-all">
+            <span>Chọn file ảnh</span>
+            <input id="file-upload" name="file-upload" type="file" class="sr-only" accept="image/png, image/jpeg" (change)="onFileSelected($event)">
+          </label>
+          <p class="text-xs text-slate-500 mt-2">Hỗ trợ PNG, JPG</p>
+        </div>
+
+        @if (error()) {
+          <div class="mt-4 p-3 bg-red-100 border border-red-300 text-red-800 rounded-lg text-sm">
+            {{ error() }}
+          </div>
+        }
+
+        @if (imagePreviewUrl(); as url) {
+          <div class="mt-6">
+            <h3 class="font-semibold text-slate-700 mb-2">Xem trước ảnh:</h3>
+            <div class="relative group">
+              <img [src]="url" alt="Xem trước ảnh hồ sơ" class="rounded-lg w-full object-contain max-h-80 border border-slate-300 shadow-md">
+              <button (click)="reset()" class="absolute top-2 right-2 bg-black/50 text-white rounded-full p-2 hover:bg-black/75 transition-colors opacity-0 group-hover:opacity-100" aria-label="Xóa ảnh">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </div>
+
+            <button (click)="performOcr()" [disabled]="isProcessing() || !selectedFile()" 
+                    class="mt-6 w-full flex items-center justify-center gap-3 bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-slate-400 disabled:cursor-not-allowed transition-colors">
+              @if (isProcessing()) {
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Đang xử lý...</span>
+              } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M4 8V4h4L8 2H2v6h2zm14-2h-4V2h6v6h-2V6zM4 12v4h4v2H2v-6h2zm14 2h-4v4h6v-6h-2v2z"/>
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zm7-1a1 1 0 11-2 0 1 1 0 012 0z" clip-rule="evenodd" />
+                </svg>
+                <span>Thực hiện OCR & Bóc tách</span>
+              }
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Right Column: Results -->
+      <div class="p-6 sm:p-8 bg-slate-50/70">
+        <h2 class="text-xl font-semibold text-slate-700 mb-4">2. Kết quả bóc tách</h2>
+
+        @if (isProcessing()) {
+          <div class="text-center py-10">
+            <p class="text-slate-600">Đang phân tích hình ảnh và bóc tách dữ liệu...</p>
+          </div>
+        } @else if (ocrResult(); as result) {
+          <div class="space-y-6 animate-fade-in">
+            <div>
+              <label for="raw-text" class="block text-sm font-medium text-slate-700">Văn bản nhận diện được</label>
+              <textarea id="raw-text" readonly rows="7" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-slate-100 p-2 custom-scrollbar">{{ result.rawText }}</textarea>
+            </div>
+            
+            <div class="space-y-4">
+              <h3 class="font-semibold text-slate-700">Thông tin đã bóc tách</h3>
+              <div>
+                <label for="ho-ten" class="block text-sm font-medium text-slate-700">Họ tên công dân</label>
+                <input type="text" id="ho-ten" [value]="result.extractedData.hoTen" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
+              </div>
+              <div>
+                <label for="so-cccd" class="block text-sm font-medium text-slate-700">Số CCCD</label>
+                <input type="text" id="so-cccd" [value]="result.extractedData.soCCCD" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
+              </div>
+              <div>
+                <label for="ngay-cap" class="block text-sm font-medium text-slate-700">Ngày cấp (MM/DD/YYYY)</label>
+                <input type="text" id="ngay-cap" [value]="result.extractedData.ngayCap" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
+              </div>
+              <div>
+                <label for="dia-chi" class="block text-sm font-medium text-slate-700">Địa chỉ</label>
+                <textarea id="dia-chi" rows="3" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">{{ result.extractedData.diaChi }}</textarea>
+              </div>
+            </div>
+            
+            <div class="pt-4 flex items-center justify-between">
+              <button (click)="saveData()" 
+                      class="inline-flex items-center justify-center gap-2 bg-green-600 text-white font-bold py-2.5 px-5 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M7.5 2.5a.5.5 0 00-1 0V3H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2h-.5V2.5a.5.5 0 00-1 0V3H8.5V2.5zM10 6a1 1 0 100 2 1 1 0 000-2z" />
+                  <path d="M10 8a3 3 0 100 6 3 3 0 000-6z" />
+                </svg>
+                Lưu dữ liệu
+              </button>
+
+              @if (saveStatus() === 'success') {
+                <div class="flex items-center gap-2 text-green-600 animate-fade-in-out">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  </svg>
+                  <span class="text-sm font-medium">Lưu thành công!</span>
+                </div>
+              }
+            </div>
+          </div>
+        } @else {
+          <div class="h-full flex flex-col items-center justify-center text-center text-slate-500 p-10 bg-white rounded-lg border border-slate-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-slate-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p class="font-medium">Chưa có dữ liệu</p>
+            <p class="text-sm">Vui lòng tải lên một ảnh và thực hiện bóc tách để xem kết quả tại đây.</p>
+          </div>
+        }
+      </div>
+    </div>
+  </main>
+</div>

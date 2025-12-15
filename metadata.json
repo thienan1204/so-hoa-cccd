@@ -1,0 +1,5 @@
+{
+  "name": "Ứng dụng OCR - Số hóa & Bóc tách dữ liệu",
+  "description": "Một ứng dụng web để tải lên hình ảnh hồ sơ, tự động nhận dạng ký tự (OCR) và bóc tách các thông tin quan trọng như Họ tên, Số CCCD, Ngày cấp và Địa chỉ.",
+  "requestFramePermissions": []
+}
